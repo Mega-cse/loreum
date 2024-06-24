@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Picsum Photos API Pagination</title>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .image-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .image-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .image-card .image-details {
+      padding: 10px;
+      text-align: center;
+    }
+    .image-card .image-id {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+    .image-card .image-author {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .pagination-button {
+      padding: 10px 20px;
+      margin: 0 5px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    .pagination-button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  
+  <h1 >Lorem Picsum</h1>
+  <h3>The Lorem Ipsum for photos.</h3>
+  <div class="grid-container" id="imageGrid"></div>
+
+  <div class="pagination">
+    <button class="pagination-button" id="prevButton" disabled>Previous</button>
+    <button class="pagination-button" id="nextButton">Next</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const imageGrid = document.getElementById('imageGrid');
+      const prevButton = document.getElementById('prevButton');
+      const nextButton = document.getElementById('nextButton');
+      let currentPage = 1;
+      const perPage = 10; // Number of images per page
+      let totalImages = 100; // Total number of images available
+
+      // Function to fetch images based on page number
+      const fetchImages = (page) => {
+        const url = `https://picsum.photos/v2/list?page=${page}&limit=${perPage}`;
+
+        fetch(url)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            imageGrid.innerHTML = ''; // Clear previous images
+
+            data.forEach(image => {
+              const imageCard = document.createElement('div');
+              imageCard.classList.add('image-card');
+
+              const img = document.createElement('img');
+              img.src = image.download_url;
+              img.alt = image.author;
+
+              const imageDetails = document.createElement('div');
+              imageDetails.classList.add('image-details');
+
+              const imageId = document.createElement('p');
+              imageId.classList.add('image-id');
+              imageId.textContent = `ID: ${image.id}`;
+
+              const imageAuthor = document.createElement('p');
+              imageAuthor.classList.add('image-author');
+              imageAuthor.textContent = `Author: ${image.author}`;
+
+              imageDetails.appendChild(imageId);
+              imageDetails.appendChild(imageAuthor);
+              imageCard.appendChild(img);
+              imageCard.appendChild(imageDetails);
+              imageGrid.appendChild(imageCard);
+            });
+
+            // Enable/disable pagination buttons based on current page
+            prevButton.disabled = currentPage === 1;
+            nextButton.disabled = currentPage * perPage >= totalImages;
+          })
+          .catch(error => {
+            console.error('Error fetching images:', error);
+            imageGrid.innerHTML = '<p>Failed to fetch images. Please try again later.</p>';
+          });
+      };
+
+      // Initial fetch for the first page
+      fetchImages(currentPage);
+
+      // Event listener for Previous button
+      prevButton.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          fetchImages(currentPage);
+        }
+      });
+
+      // Event listener for Next button
+      nextButton.addEventListener('click', () => {
+        if (currentPage * perPage < totalImages) {
+          currentPage++;
+          fetchImages(currentPage);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
